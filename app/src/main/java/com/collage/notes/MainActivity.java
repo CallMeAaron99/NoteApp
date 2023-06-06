@@ -179,8 +179,8 @@ public class MainActivity extends AppCompatActivity {
                         // update or create label when dialog is closed
                         if(focusedLabel != null){
                             String trimmedEditLabelText = focusedEditLabelText.getText().toString().trim();
-                            if(!Objects.equals(focusedLabel.getName(), trimmedEditLabelText)){
-                                if(focusedLabel.getId() == 0){
+                            if(!Objects.equals(focusedLabel.getName(), trimmedEditLabelText)) {
+                                if (focusedLabel.getId() == 0) {
                                     focusedLabel.setName(trimmedEditLabelText);
                                     int newLabelId = (int) databaseHelper.createLabel(focusedLabel);
                                     if (newLabelId != -1) {
@@ -188,22 +188,19 @@ public class MainActivity extends AppCompatActivity {
                                         createEditLabel(editLabelContainer, databaseHelper.getLabelById(newLabelId));
                                         // refresh UI
                                         focusedEditLabelText.setText("");
-                                        updateAllLabels();
-                                        labelAdapter.notifyDataSetChanged();
                                     }
-                                }else {
+                                } else {
                                     focusedLabel.setName(trimmedEditLabelText);
-                                    if (databaseHelper.updateLabel(focusedLabel) != 0) {
+                                    if (databaseHelper.updateLabel(focusedLabel) != 0)
                                         // update label success
                                         focusedEditLabelText.setText(trimmedEditLabelText);
-                                        // refresh UI
-                                        labelAdapter.notifyDataSetChanged();
-                                        noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
-                                    }
                                 }
                             }
                         }
-
+                        // refresh UI
+                        updateAllLabels();
+                        labelAdapter.notifyDataSetChanged();
+                        noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
                     }
                 });
 
@@ -232,13 +229,9 @@ public class MainActivity extends AppCompatActivity {
                 if (!hasFocus && !trimmedEditLabelText.equals("")) {
                     // "edit label text" lost focus
                     label.setName(trimmedEditLabelText);
-                    // update label success
-                    if (databaseHelper.updateLabel(label) != 0) {
+                    if (databaseHelper.updateLabel(label) != 0)
+                        // update label success
                         editLabelText.setText(trimmedEditLabelText);
-                        // refresh UI
-                        labelAdapter.notifyDataSetChanged();
-                        noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
-                    }
                 }
             }
         });
@@ -254,12 +247,10 @@ public class MainActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 // delete label in db
                                 databaseHelper.deleteLabel(label.getId());
-                                // remove label from container
+                                // remove label
                                 editLabelContainer.removeView(editLabelItem);
-                                // refresh UI
                                 allLabels.remove(label);
-                                labelAdapter.notifyDataSetChanged();
-                                noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
+                                focusedLabel = null;
                             }
                         })
                         .setNegativeButton(R.string.cancel, null)
@@ -298,8 +289,6 @@ public class MainActivity extends AppCompatActivity {
                         createEditLabel(editLabelContainer, databaseHelper.getLabelById(newLabelId));
                         // refresh UI
                         editLabelText.setText("");
-                        updateAllLabels();
-                        labelAdapter.notifyDataSetChanged();
                     }
                 }
             }
