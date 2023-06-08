@@ -45,6 +45,35 @@ public class MainActivity extends AppCompatActivity {
     public Button addButton;
     public Button editLabelButton;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        init();
+    }
+
+    @Override
+    protected void onDestroy() {
+        databaseHelper.close();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        // update notes after edit note activity
+        noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
+        super.onResume();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private void init() {
         databaseHelper = new DatabaseHelper(this);
 
@@ -57,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(actionBarDrawerToggle);
         actionBarDrawerToggle.syncState();
 
-        // to make the Navigation drawer icon always appear on the action bar
+        // to make the navigation drawer icon always appear on the action bar
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         searchBar = findViewById(R.id.search_bar);
@@ -83,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         setTitle(R.string.all_labels);
     }
 
-    private void updateAllLabels(){
+    private void updateAllLabels() {
         allLabels.clear();
         // add "all label" as first label
         allLabels.add(new Label(-1, getString(R.string.all_labels)));
@@ -92,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setListener() {
         noteAdapter.setOnItemClickListener(note -> {
-            // edit note
+            // start "EditActivity" for editing note
             Intent intent = new Intent(MainActivity.this, EditNoteActivity.class);
             intent.putExtra("note", note);
             startActivity(intent);
@@ -110,12 +139,14 @@ public class MainActivity extends AppCompatActivity {
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // start "EditNoteActivity" for creating note
                 Intent intent = new Intent(MainActivity.this, EditNoteActivity.class);
                 startActivity(intent);
             }
         });
 
         searchBar.addTextChangedListener(new TextWatcher() {
+            // content filter
             private Timer timer = new Timer();
             private int delay = getResources().getInteger(R.integer.search_delay); // milliseconds
 
@@ -165,21 +196,22 @@ public class MainActivity extends AppCompatActivity {
                         continue;
                     createEditLabel(editLabelContainer, label);
                 }
-
                 // create dialog
                 AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
                         .setTitle(R.string.edit_label_dialog_title)
                         .setView(editLabelDialog)
                         .setPositiveButton(R.string.ok, null)
                         .create();
-
                 dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
                     @Override
                     public void onDismiss(DialogInterface dialog) {
                         // update or create label when dialog is closed
-                        if(focusedLabel != null){
+                        if (focusedLabel != null) {
                             String trimmedEditLabelText = focusedEditLabelText.getText().toString().trim();
-                            if(!Objects.equals(focusedLabel.getName(), trimmedEditLabelText)) {
+                            if (trimmedEditLabelText.equals(""))
+                                // no content
+                                return;
+                            if (!Objects.equals(focusedLabel.getName(), trimmedEditLabelText)) {
                                 if (focusedLabel.getId() == 0) {
                                     focusedLabel.setName(trimmedEditLabelText);
                                     int newLabelId = (int) databaseHelper.createLabel(focusedLabel);
@@ -210,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void createEditLabel(LinearLayout editLabelContainer, Label label){
+    private void createEditLabel(LinearLayout editLabelContainer, Label label) {
         View editLabelItem = getLayoutInflater().inflate(R.layout.edit_label_item, null);
         EditText editLabelText = editLabelItem.findViewById(R.id.edit_label_text);
         ImageButton deleteLabelButton = editLabelItem.findViewById(R.id.delete_label_button);
@@ -250,7 +282,6 @@ public class MainActivity extends AppCompatActivity {
                                 // remove label
                                 editLabelContainer.removeView(editLabelItem);
                                 allLabels.remove(label);
-                                focusedLabel = null;
                             }
                         })
                         .setNegativeButton(R.string.cancel, null)
@@ -296,35 +327,4 @@ public class MainActivity extends AppCompatActivity {
         // add new label to list at first place
         editLabelContainer.addView(editLabelItem, 0);
     }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        init();
-    }
-
-    @Override
-    protected void onDestroy() {
-        databaseHelper.close();
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onResume() {
-        // update notes after edit note activity
-        noteAdapter.updateNotes(databaseHelper.getNotes(searchBar.getText().toString(), labelId));
-        super.onResume();
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-
-        if (actionBarDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-
 }

@@ -35,7 +35,7 @@ public class DatabaseHelperTest {
     @Test
     public void testCreateLabel() {
         Label label = new Label();
-        label.setName("赵东");
+        label.setName("Test Label");
         long labelId = db.createLabel(label);
         assertTrue(labelId != -1);
     }
